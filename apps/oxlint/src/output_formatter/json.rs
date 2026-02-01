@@ -27,10 +27,10 @@ impl InternalFormatter for JsonOutputFormatter {
             category: RuleCategory,
             type_aware: bool,
             fix: String,
+            description: String,
             default: bool,
             docs_url: CompactStr,
         }
-
         // Determine which rules are turned on by default (same logic as RuleTable)
         let default_plugin_names = ["eslint", "unicorn", "typescript", "oxc"];
         let default_rules: FxHashSet<&'static str> = RULES
@@ -50,6 +50,7 @@ impl InternalFormatter for JsonOutputFormatter {
                 category: rule.category(),
                 type_aware: rule.is_tsgolint_rule(),
                 fix: rule.fix().to_string(),
+                description: extract_summary(rule.documentation()),
                 default: default_rules.contains(rule.name()),
                 docs_url: format!(
                     "https://oxc.rs/docs/guide/usage/linter/rules/{}/{}.html",
@@ -144,6 +145,45 @@ fn format_json(diagnostics: &mut Vec<Error>) -> String {
         .collect::<Vec<_>>()
         .join(",\n");
     format!("[{messages}]")
+}
+
+fn extract_summary(docs: Option<&str>) -> String {
+    let Some(docs) = docs else { return String::new() };
+
+    let mut summary = Vec::new();
+    let mut collecting = false;
+
+    for line in docs.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("### What it does") {
+            collecting = true;
+            continue;
+        }
+        if collecting {
+            if trimmed.starts_with("###") {
+                break;
+            }
+            if trimmed.is_empty() {
+                if !summary.is_empty() {
+                    break;
+                }
+                continue;
+            }
+            summary.push(trimmed);
+        }
+    }
+
+    if summary.is_empty() {
+        // Fallback: take the first non-empty line that doesn't start with #
+        for line in docs.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                return trimmed.to_string();
+            }
+        }
+    }
+
+    summary.join(" ")
 }
 
 #[cfg(test)]

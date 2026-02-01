@@ -15,7 +15,6 @@ pub struct LintRuleMeta {
     category: Ident,
     /// Describes what auto-fixing capabilities the rule has
     fix: Option<Ident>,
-    #[cfg(feature = "ruledocs")]
     documentation: String,
     pub used_in_test: bool,
     /// Rule configuration
@@ -26,16 +25,13 @@ pub struct LintRuleMeta {
 
 impl Parse for LintRuleMeta {
     fn parse(input: ParseStream<'_>) -> Result<Self> {
-        #[cfg(feature = "ruledocs")]
         let mut documentation = String::new();
 
-        #[cfg(feature = "ruledocs")]
         let mut backtick_fences_count: usize = 0;
 
         for attr in input.call(Attribute::parse_outer)? {
             match parse_attr(["doc"], &attr) {
                 Some(lit) => {
-                    #[cfg(feature = "ruledocs")]
                     {
                         let value = lit.value();
                         let line = value.strip_prefix(' ').unwrap_or(&value);
@@ -45,10 +41,6 @@ impl Parse for LintRuleMeta {
 
                         // Count occurrences of "```" to ensure the markdown code blocks are closed properly.
                         backtick_fences_count += line.matches("```").count();
-                    }
-                    #[cfg(not(feature = "ruledocs"))]
-                    {
-                        let _ = lit;
                     }
                 }
                 _ => {
@@ -132,7 +124,6 @@ impl Parse for LintRuleMeta {
 
         // Validate that any markdown fenced code blocks (```) in rule docs are properly closed.
         // If the total number of fences found is odd, a block was not closed.
-        #[cfg(feature = "ruledocs")]
         if !backtick_fences_count.is_multiple_of(2) {
             return Err(Error::new(
                 struct_name.span(),
@@ -146,7 +137,6 @@ impl Parse for LintRuleMeta {
             plugin,
             category,
             fix,
-            #[cfg(feature = "ruledocs")]
             documentation,
             used_in_test: false,
             config,
@@ -165,7 +155,6 @@ pub fn declare_oxc_lint(metadata: LintRuleMeta) -> TokenStream {
         plugin,
         category,
         fix,
-        #[cfg(feature = "ruledocs")]
         documentation,
         used_in_test,
         config,
@@ -200,15 +189,11 @@ pub fn declare_oxc_lint(metadata: LintRuleMeta) -> TokenStream {
         })
     };
 
-    #[cfg(not(feature = "ruledocs"))]
-    let docs: Option<proc_macro2::TokenStream> = None;
-
-    #[cfg(feature = "ruledocs")]
-    let docs = Some(quote! {
+    let docs = quote! {
         fn documentation() -> Option<&'static str> {
             Some(#documentation)
         }
-    });
+    };
 
     #[cfg(not(feature = "ruledocs"))]
     let config_schema: Option<proc_macro2::TokenStream> = {

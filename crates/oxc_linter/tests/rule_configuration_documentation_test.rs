@@ -7,7 +7,6 @@
 
 // NOTE: You will need to run the tests with `--features ruledocs` or
 // `--all-features` for this test file to run.
-#![cfg(feature = "ruledocs")]
 
 use lazy_regex::Regex;
 use oxc_linter::{rules::RULES, table::RuleTable};

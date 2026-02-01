@@ -1,4 +1,3 @@
-#[cfg(feature = "ruledocs")]
 use std::borrow::Cow;
 use std::{fmt, hash::Hash};
 
@@ -31,7 +30,6 @@ pub trait Rule: Sized + Default + fmt::Debug {
     }
 
     #[expect(unused_variables)]
-    #[cfg(feature = "ruledocs")]
     fn schema(generator: &mut SchemaGenerator) -> Option<Schema> {
         None
     }
@@ -431,7 +429,6 @@ impl RuleFixMeta {
         matches!(self, Self::Fixable(fix_kind) | Self::Conditional(fix_kind) if fix_kind.can_apply(kind))
     }
 
-    #[cfg(feature = "ruledocs")]
     pub fn description(self) -> Cow<'static, str> {
         match self {
             Self::None => Cow::Borrowed("No auto-fix is available for this rule."),
@@ -507,7 +504,6 @@ mod test {
     use rustc_hash::FxHashMap;
 
     #[test]
-    #[cfg(feature = "ruledocs")]
     fn ensure_documentation() {
         use crate::rules::RULES;
         use markdown::{Options, to_html_with_options};

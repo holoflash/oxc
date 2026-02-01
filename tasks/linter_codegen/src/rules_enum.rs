@@ -261,14 +261,12 @@ fn generate_rule_enum_impl(rule_entries: &[RuleEntry<'_>]) -> TokenStream {
                 }
             }
 
-            #[cfg(feature = "ruledocs")]
             pub fn documentation(&self) -> Option<&'static str> {
                 match self {
                     #(#documentation_arms),*
                 }
             }
 
-            #[cfg(feature = "ruledocs")]
             pub fn schema(&self, generator: &mut schemars::SchemaGenerator) -> Option<schemars::schema::Schema> {
                 match self {
                     #(#schema_arms),*

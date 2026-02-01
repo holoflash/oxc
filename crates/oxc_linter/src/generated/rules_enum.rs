@@ -4315,7 +4315,6 @@ impl RuleEnum {
             Self::VueValidDefineProps(_) => VueValidDefineProps::FIX,
         }
     }
-    #[cfg(feature = "ruledocs")]
     pub fn documentation(&self) -> Option<&'static str> {
         match self {
             Self::ImportConsistentTypeSpecifierStyle(_) => {
@@ -5248,7 +5247,6 @@ impl RuleEnum {
             Self::VueValidDefineProps(_) => VueValidDefineProps::documentation(),
         }
     }
-    #[cfg(feature = "ruledocs")]
     pub fn schema(
         &self,
         generator: &mut schemars::SchemaGenerator,
